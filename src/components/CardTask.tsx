@@ -1,10 +1,61 @@
-export default function Card({ id, title }: { id: number; title: string }) {
+import { Task } from "@prisma/client";
+
+export default function Card({
+  id,
+  title,
+  done,
+  setTask,
+}: {
+  id: number;
+  title: string;
+  done: boolean;
+  setTask: Function;
+}) {
+  const onDelete = async () => {
+    /*
+      7 - Atualize a listagem removendo a tarefa
+      selecionada e faça uma requisição passando o
+      id do mesmo na URL para deletá-lo.
+    */
+
+    setTask((task: Task[]) => task.filter((e) => e.id !== id));
+    await fetch(`http://localhost:3000/api/task/${id}`, { method: "DELETE" });
+  };
+
+  const toggle = async () => {
+    /*
+      8 - Atualize a listagem invertendo o status da
+      tarefa selecionada. Faça uma requisição passando
+      no corpo da requisição o parâmetro "done" contendo
+      o novo status e na URL o id para atualizá-la.
+    */
+
+    setTask((task: Task[]) =>
+      task.map((e) => (e.id === id ? { ...e, done: !e.done } : e))
+    );
+    await fetch(`http://localhost:3000/api/task/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ done: !done }),
+    });
+  };
+
   return (
-    <div key={id} className="bg-zinc-100 rounded-md shadow-sm py-2 px-3">
-      <span className="hidden">{id}</span>
+    <div className="bg-zinc-100 rounded-md shadow-sm py-2 px-3">
       <div className="flex items-center">
-        <p className="w-11/12 text-gray-700">{title}</p>
-        <button className="group w-1/12">
+        <input
+          type="checkbox"
+          className="h-4 w-4 me-2"
+          checked={done}
+          onClick={toggle}
+        />
+        <p
+          className={`grow ${
+            done ? "line-through text-zinc-400" : "text-gray-700"
+          }`}
+        >
+          {title}
+        </p>
+        <button className="group w-6">
           <div className="group-hover:hidden text-gray-700">
             <svg
               fill="none"
@@ -21,7 +72,10 @@ export default function Card({ id, title }: { id: number; title: string }) {
               ></path>
             </svg>
           </div>
-          <div className="hidden group-hover:block group-hover:text-red-400">
+          <div
+            className="hidden group-hover:block group-hover:text-red-400"
+            onClick={onDelete}
+          >
             <svg
               fill="none"
               stroke="currentColor"

@@ -1,22 +1,24 @@
-"use client";
-
+import { Task } from "@prisma/client";
 import { useState } from "react";
 
-export default function CreateTask() {
+export default function CreateTask({ setTask }: { setTask: Function }) {
   const [description, setDescription] = useState("");
 
   const handleSubmit = async () => {
     if (description) {
-      /// 5 - Faça um request com o método POST passando a descrição no body.
+      /*
+        6 - Faça uma request para cadastrar uma tarefa,
+        passando a descrição no corpo da requisição. Após
+        receber os dado, atualize a listagem na tela.
+      */
 
-      /**/
-      await fetch("http://localhost:3000/api/task", {
+      const res = await fetch("http://localhost:3000/api/task", {
         method: "POST",
         body: JSON.stringify({ description }),
       });
-      /**/
+      const data = await res.json();
 
-      // await fetch(" ... ");
+      setTask((task: Task[]) => [data, ...task]);
     }
   };
 
@@ -35,7 +37,10 @@ export default function CreateTask() {
             className="shadow rounded-md px-2 text-gray-700"
           />
           <button
-            onClick={() => handleSubmit()}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
             className="shadow rounded-md bg-blue-400 py-1 px-3 text-zinc-50"
           >
             Criar
