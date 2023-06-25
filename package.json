@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:view": "playwright test --ui"
   },
   "dependencies": {
     "@prisma/client": "^4.14.1",
