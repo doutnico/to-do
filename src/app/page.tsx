@@ -10,7 +10,7 @@ export default function Page() {
 
   const getAllTask = async () => {
     /*
-      5 - Faça uma requisição buscando todas as tarefas
+      6 - Faça uma requisição buscando todas as tarefas
       cadastradas no banco de dados. Após obter todos os
       dados, atualize a listagem para exibir na tela.
     */

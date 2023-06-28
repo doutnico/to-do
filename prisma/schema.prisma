@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//  1 - crie uma tabela chamada "Task" com as seguintes colunas:
+//  1 - Crie uma tabela chamada "Task" com as seguintes colunas:
 //  "id" autoincremento, "description" para a descrição da tarefa
 //  e "done" para verificar se o mesmo foi concluído.
 

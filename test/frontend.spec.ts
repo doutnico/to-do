@@ -14,6 +14,35 @@ test.describe("tests front-end", () => {
     await prisma.$disconnect();
   });
 
+  test("get all tasks", async ({ page, request }) => {
+    const CURRENT_DATE: string = new Date().getTime().toString();
+    const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
+
+    const createTask = await prisma.task.create({
+      data: { description: DESCRIPTION_TASK },
+    });
+    const response = await request.get("/api/task");
+    await prisma.task.delete({ where: { id: createTask.id } });
+
+    const tasks = await response.json();
+    expect(tasks.length).toBeGreaterThanOrEqual(1);
+
+    if (response.ok()) {
+      const createTask = await prisma.task.create({
+        data: { description: DESCRIPTION_TASK },
+      });
+
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      await page.waitForSelector("div.bg-zinc-100");
+      const taskCards = await page.$$("div.bg-zinc-100");
+
+      await prisma.task.delete({ where: { id: createTask.id } });
+
+      expect(taskCards.length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
   test("create task", async ({ page }) => {
     const CURRENT_DATE: string = new Date().getTime().toString();
     const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
@@ -28,12 +57,12 @@ test.describe("tests front-end", () => {
     const findTask = await prisma.task.findFirst({
       where: { description: DESCRIPTION_TASK },
     });
-
     await prisma.task.delete({ where: { id: findTask?.id } });
+
     expect(findTask?.description).toBe(DESCRIPTION_TASK);
   });
 
-  test("delete task", async ({ page }) => {
+  test("delete task", async ({ page, request }) => {
     const CURRENT_DATE: string = new Date().getTime().toString();
     const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
 
@@ -44,33 +73,47 @@ test.describe("tests front-end", () => {
     const createTask = await prisma.task.create({
       data: { description: DESCRIPTION_TASK },
     });
+    const response = await request.get("/api/task");
+    await prisma.task.delete({ where: { id: createTask.id } });
 
-    await page.goto("/", { waitUntil: "networkidle" });
+    const tasks = await response.json();
+    expect(tasks.length).toBeGreaterThanOrEqual(1);
 
-    await page.waitForSelector("div.bg-zinc-100");
-    const taskCards = await page.$$("div.bg-zinc-100");
-    for (const card of taskCards) {
-      const taskName = await card.$eval("p.grow", (el) => el.textContent);
-      if (taskName === DESCRIPTION_TASK) {
-        const moreButton = await card.$(MORE_SELECTOR);
-        if (moreButton) {
-          await moreButton.hover();
-          const deleteButton = await card.$(BUTTON_SELECTOR);
-          if (deleteButton) await deleteButton.click();
+    if (response.ok()) {
+      const createTask = await prisma.task.create({
+        data: { description: DESCRIPTION_TASK },
+      });
+
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      await page.waitForSelector("div.bg-zinc-100");
+      const taskCards = await page.$$("div.bg-zinc-100");
+
+      for (const card of taskCards) {
+        const taskName = await card.$eval("p.grow", (el) => el.textContent);
+        if (taskName === DESCRIPTION_TASK) {
+          const moreButton = await card.$(MORE_SELECTOR);
+          if (moreButton) {
+            await moreButton.hover();
+            const deleteButton = await card.$(BUTTON_SELECTOR);
+            if (deleteButton) await deleteButton.click();
+          }
+          break;
         }
-        break;
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const findTask = await prisma.task.findUnique({
+        where: { id: createTask.id },
+      });
+      if (findTask) await prisma.task.delete({ where: { id: createTask.id } });
+
+      return expect(findTask).toBe(null);
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const findTask = await prisma.task.findUnique({
-      where: { id: createTask.id },
-    });
-    expect(findTask).toBe(null);
   });
 
-  test("update task", async ({ page }) => {
+  test("update task", async ({ page, request }) => {
     const CURRENT_DATE: string = new Date().getTime().toString();
     const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
 
@@ -79,25 +122,39 @@ test.describe("tests front-end", () => {
     const createTask = await prisma.task.create({
       data: { description: DESCRIPTION_TASK },
     });
+    const response = await request.get("/api/task");
+    await prisma.task.delete({ where: { id: createTask.id } });
 
-    await page.goto("/", { waitUntil: "networkidle" });
+    const tasks = await response.json();
+    expect(tasks.length).toBeGreaterThanOrEqual(1);
 
-    await page.waitForSelector("div.bg-zinc-100");
-    const taskCards = await page.$$("div.bg-zinc-100");
-    for (const card of taskCards) {
-      const taskName = await card.$eval("p.grow", (el) => el.textContent);
-      if (taskName === DESCRIPTION_TASK) {
-        const checkBox = await card.$(CHECK_SELECTOR);
-        if (checkBox) await checkBox.click();
-        break;
+    if (response.ok()) {
+      const createTask = await prisma.task.create({
+        data: { description: DESCRIPTION_TASK },
+      });
+
+      await page.goto("/", { waitUntil: "networkidle" });
+
+      await page.waitForSelector("div.bg-zinc-100");
+      const taskCards = await page.$$("div.bg-zinc-100");
+
+      for (const card of taskCards) {
+        const taskName = await card.$eval("p.grow", (el) => el.textContent);
+        if (taskName === DESCRIPTION_TASK) {
+          const checkBox = await card.$(CHECK_SELECTOR);
+          if (checkBox) await checkBox.click();
+          break;
+        }
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const findTask = await prisma.task.findUnique({
+        where: { id: createTask.id },
+      });
+      await prisma.task.delete({ where: { id: createTask.id } });
+
+      expect(findTask?.done).toBe(true);
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const findTask = await prisma.task.findUnique({
-      where: { id: createTask.id },
-    });
-    expect(findTask?.done).toBe(true);
   });
 });

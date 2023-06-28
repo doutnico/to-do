@@ -33,24 +33,37 @@ test.describe("tests back-end", () => {
   });
 
   test("get all tasks", async ({ request }) => {
-    const res = await request.get("/api/task");
-    expect(res.ok()).toBeTruthy();
+    const CURRENT_DATE: string = new Date().getTime().toString();
+    const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
 
-    const tasks = await res.json();
-    expect(Array.isArray(tasks)).toBeTruthy();
+    const createTask = await prisma.task.create({
+      data: { description: DESCRIPTION_TASK },
+    });
+
+    const response = await request.get("/api/task");
+
+    await prisma.task.delete({ where: { id: createTask.id } });
+
+    const tasks = await response.json();
+    expect(tasks.length).toBeGreaterThanOrEqual(1);
   });
 
   test("create task", async ({ request }) => {
-    const res = await request.post("/api/task", {
-      data: { description: DESCRIPTION },
+    const CURRENT_DATE: string = new Date().getTime().toString();
+    const DESCRIPTION_TASK = `${DESCRIPTION} - ${CURRENT_DATE}`;
+
+    const response = await request.post("/api/task", {
+      data: { description: DESCRIPTION_TASK },
     });
-    expect(res.ok()).toBeTruthy();
 
-    const task = await res.json();
-    expect(task.description).toBe(DESCRIPTION);
+    const findTask = await prisma.task.findFirst({
+      where: { description: DESCRIPTION_TASK },
+    });
+    await prisma.task.delete({ where: { id: findTask?.id } });
 
-    const deleteTask = await prisma.task.delete({ where: { id: task.id } });
-    expect(task.id).toBe(deleteTask.id);
+    const task = await response.json();
+    expect(task.id).toBe(findTask?.id);
+    expect(task.description).toBe(DESCRIPTION_TASK);
   });
 
   test("delete task", async ({ request }) => {
@@ -61,10 +74,14 @@ test.describe("tests back-end", () => {
       data: { description: DESCRIPTION_TASK },
     });
 
-    const res = await request.delete(`/api/task/${createTask.id}`);
-    expect(res.ok()).toBeTruthy();
+    const response = await request.delete(`/api/task/${createTask.id}`);
 
-    const task = await res.json();
+    const findTask = await prisma.task.findUnique({
+      where: { id: createTask.id },
+    });
+    if (findTask) await prisma.task.delete({ where: { id: createTask.id } });
+
+    const task = await response.json();
     expect(task.id).toBe(createTask.id);
     expect(task.description).toBe(DESCRIPTION_TASK);
   });
@@ -77,12 +94,13 @@ test.describe("tests back-end", () => {
       data: { description: DESCRIPTION_TASK },
     });
 
-    const res = await request.patch(`/api/task/${createTask.id}`, {
+    const response = await request.patch(`/api/task/${createTask.id}`, {
       data: { done: true },
     });
-    expect(res.ok()).toBeTruthy();
 
-    const task = await res.json();
+    await prisma.task.delete({ where: { id: createTask.id } });
+
+    const task = await response.json();
     expect(task.id).toBe(createTask.id);
     expect(task.done).toBe(true);
   });

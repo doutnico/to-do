@@ -7,7 +7,7 @@ export default function CreateTask({ setTask }: { setTask: Function }) {
   const handleSubmit = async () => {
     if (description) {
       /*
-        6 - Faça uma request para cadastrar uma tarefa,
+        7 - Faça uma request para cadastrar uma tarefa,
         passando a descrição no corpo da requisição. Após
         receber os dado, atualize a listagem na tela.
       */
@@ -17,7 +17,6 @@ export default function CreateTask({ setTask }: { setTask: Function }) {
         body: JSON.stringify({ description }),
       });
       const data = await res.json();
-
       setTask((task: Task[]) => [data, ...task]);
     }
   };

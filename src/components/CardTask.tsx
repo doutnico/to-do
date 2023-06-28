@@ -13,7 +13,7 @@ export default function Card({
 }) {
   const onDelete = async () => {
     /*
-      7 - Atualize a listagem removendo a tarefa
+      8 - Atualize a listagem removendo a tarefa
       selecionada e faça uma requisição passando o
       id do mesmo na URL para deletá-lo.
     */
@@ -24,10 +24,10 @@ export default function Card({
 
   const toggle = async () => {
     /*
-      8 - Atualize a listagem invertendo o status da
+      9 - Atualize a listagem invertendo o status da
       tarefa selecionada. Faça uma requisição passando
       no corpo da requisição o parâmetro "done" contendo
-      o novo status e na URL o id para atualizá-la.
+      o novo status, e na URL o id para atualizá-la.
     */
 
     setTask((task: Task[]) =>
